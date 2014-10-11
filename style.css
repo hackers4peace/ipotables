@@ -5,3 +5,15 @@ body {
 #header h1 {
   cursor: pointer;
 }
+
+div.process {
+  padding: 5px;
+}
+
+button {
+  width: 100px;
+}
+
+.editing {
+  border: 1px dashed blue;
+}

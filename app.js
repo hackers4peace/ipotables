@@ -10,9 +10,9 @@ $(function(){
     }
   };
 
-  var graph = levelgraphJSONLD(levelgraph('dev1'));
+  var graph = levelgraphJSONLD(levelgraph('dev2'));
 
-  function putResource(resource){
+  function createResource(resource){
     if(!resource["@context"]) resource["@context"] = CONTEXT["@context"];
     return new Promise(function(resolve, reject){
       graph.jsonld.put(resource, function(err, doc){
@@ -40,6 +40,15 @@ $(function(){
     });
   }
 
+  function updateResource(resource){
+    return new Promise(function(resolve, reject){
+      delResource(resource['@id'])
+        .then(createResource(resource))
+        .then(resolve)
+        .catch(reject);
+    });
+  }
+
   function getAllTriples(){
     return new Promise(function(resolve, reject){
       graph.get({}, function(err, list){
@@ -51,7 +60,7 @@ $(function(){
 
   function seed(data) {
     return new Promise(function(resolve, reject){
-      Promise.all(_.map(data["@graph"], putResource)).then(function(){
+      Promise.all(_.map(data["@graph"], createResource)).then(function(){
         console.log('database seeded');
         resolve();
       }).catch(reject);
@@ -86,7 +95,8 @@ $(function(){
     });
   }
 
-  graph.putResource = putResource;
+  graph.createResource = createResource;
+  graph.updateResource = updateResource;
   graph.getResource = getResource;
   graph.getAllTriples = getAllTriples;
   graph.seed = seed;
@@ -96,6 +106,11 @@ $(function(){
   var Module = Backbone.Model.extend({
     uuid: function(){
       return this.get('@id').replace('urn:uuid:', '');
+    },
+
+    save: function(){
+      console.log(this.toJSON());
+      graph.updateResource(this.toJSON()).then(app.log).catch(app.log);
     }
   });
 
@@ -115,6 +130,40 @@ $(function(){
 
   var ModuleView = Backbone.View.extend({
     el: '#module',
+
+    initialize: function(){
+      this.$el.find('.save').hide();
+    },
+
+    events: {
+      'click button.edit': 'edit',
+      'click button.save': 'save'
+    },
+
+    edit: function(){
+      console.log('edit');
+      this.$el.find('.save').show();
+      this.$el.find('.edit').hide();
+      this.$el.find('div.process').addClass('editing');
+      this.$el.find('ul').addClass('editing');
+      var processEl = this.$el.find('.process')[0];
+      if(!processEl.isContentEditable){
+        processEl.contentEditable = true;
+      }
+    },
+
+    save: function(){
+      this.$el.find('.edit').show();
+      this.$el.find('.save').hide();
+      this.$el.find('div.process').removeClass('editing');
+      this.$el.find('ul').removeClass('editing');
+      var processEl = this.$el.find('.process')[0];
+      if(processEl.isContentEditable){
+        processEl.contentEditable = false;
+      }
+      this.model.set('process', $(processEl).html());
+      this.model.save();
+    },
 
     render: function(){
       this.$el.find('.process').html(this.model.get('process'));
@@ -266,13 +315,15 @@ $(function(){
     graph.getAll('Thing').then(function(data) { things.reset(data); });
   }
 
-  $.get('data.jsonld', function(data){
-    window.app.data = JSON.parse(data);
-    graph.empty().then(function(){
-      graph.seed(app.data).then(init);
-    });
-    console.log('retrieved data', app.data);
-  });
+  init();
+
+  //$.get('data.jsonld', function(data){
+    //window.app.data = JSON.parse(data);
+    //graph.empty().then(function(){
+      //graph.seed(app.data).then(init);
+    //});
+    //console.log('retrieved data', app.data);
+  //});
 
   $('#header h1').on('click', function(){
     router.navigate('', { trigger: true });
