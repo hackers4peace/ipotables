@@ -142,7 +142,6 @@ $(function(){
     },
 
     initialize: function(){
-      this.$el.find('.edit').hide();
       this.resetInputs();
     },
 
@@ -173,18 +172,21 @@ $(function(){
       this.$el.find('.head h2 span').html(this.model.get('name'));
       this.$el.find('.head p').html(this.model.get('description'));
       this.$el.find('.process div').html(this.model.get('process'));
+
       var inputList = this.$el.find('.input');
       inputList.empty();
       _.each(this.model.get('input'), function(uri){
         var thing = things.findWhere({ '@id': uri });
-        inputList.append('<li><a href="#things/' + thing.uuid() + '">' + thing.get('name') + '</a></li>');
+        inputList.append('<li><a href="#things/' + thing.uuid() + '">' + thing.get('name') + '</a><button type="button" class="edit del btn btn-danger btn-xs">-</button></li>');
       }.bind(this));
       var outputList = this.$el.find('.output');
       outputList.empty();
       _.each(this.model.get('output'), function(uri){
         var thing = things.findWhere({ '@id': uri });
-        outputList.append('<li><a href="#things/' + thing.uuid() + '">' + thing.get('name') + '</a></li>');
+        outputList.append('<li><a href="#things/' + thing.uuid() + '">' + thing.get('name') + '</a><button type="button" class="edit del btn btn-danger btn-xs">-</button></li>');
       }.bind(this));
+
+      this.$el.find('.edit').hide();
     }
   });
 
