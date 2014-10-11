@@ -2,7 +2,7 @@ body {
   background: url(/assets/images/tiny_grid.png);
 }
 
-#header h1 {
+#banner h1 {
   cursor: pointer;
 }
 
@@ -12,8 +12,4 @@ div.process {
 
 button {
   width: 100px;
-}
-
-.editing {
-  border: 1px dashed blue;
 }

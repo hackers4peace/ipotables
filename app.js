@@ -131,49 +131,59 @@ $(function(){
   var ModuleView = Backbone.View.extend({
     el: '#module',
 
-    initialize: function(){
-      this.$el.find('.save').hide();
-    },
-
     events: {
       'click button.edit': 'edit',
       'click button.save': 'save'
     },
 
+    initialize: function(){
+      this.$el.find('.save').hide();
+      this.$el.find('form').hide();
+      this.resetInputs();
+    },
+
+    resetInputs: function(){
+      this.$el.find('.head input').val(this.model.get('name'));
+      this.$el.find('.head textarea').val(this.model.get('description'));
+      this.$el.find('.process textarea').val(this.model.get('process'));
+    },
     edit: function(){
       console.log('edit');
+      this.$el.find('form').show();
+      this.$el.find('.head h2 span').hide();
+      this.$el.find('.head p').hide();
+      this.$el.find('.process div').hide();
       this.$el.find('.save').show();
       this.$el.find('.edit').hide();
-      this.$el.find('div.process').addClass('editing');
-      this.$el.find('ul').addClass('editing');
-      var processEl = this.$el.find('.process')[0];
-      if(!processEl.isContentEditable){
-        processEl.contentEditable = true;
-      }
     },
 
     save: function(){
-      this.$el.find('.edit').show();
-      this.$el.find('.save').hide();
-      this.$el.find('div.process').removeClass('editing');
-      this.$el.find('ul').removeClass('editing');
-      var processEl = this.$el.find('.process')[0];
-      if(processEl.isContentEditable){
-        processEl.contentEditable = false;
-      }
-      this.model.set('process', $(processEl).html());
       this.model.save();
+      this.$el.find('form').hide();
+      this.$el.find('.head h2 span').show();
+      this.$el.find('.head p').show();
+      this.$el.find('.process div').show();
+      this.$el.find('.save').hide();
+      this.$el.find('.edit').show();
+      this.render();
     },
 
     render: function(){
-      this.$el.find('.process').html(this.model.get('process'));
+      this.resetInputs();
+      this.$el.find('.head h2 span').html(this.model.get('name'));
+      this.$el.find('.head p').html(this.model.get('description'));
+      this.$el.find('.process div').html(this.model.get('process'));
+      var inputList = this.$el.find('.input');
+      inputList.empty();
       _.each(this.model.get('input'), function(uri){
         var thing = things.findWhere({ '@id': uri });
-        this.$el.find('.input').append('<li><a href="#things/' + thing.uuid() + '">' + thing.get('name') + '</a></li>');
+        inputList.append('<li><a href="#things/' + thing.uuid() + '">' + thing.get('name') + '</a></li>');
       }.bind(this));
+      var outputList = this.$el.find('.output');
+      outputList.empty();
       _.each(this.model.get('output'), function(uri){
         var thing = things.findWhere({ '@id': uri });
-        this.$el.find('.output').append('<li><a href="#things/' + thing.uuid() + '">' + thing.get('name') + '</a></li>');
+        outputList.append('<li><a href="#things/' + thing.uuid() + '">' + thing.get('name') + '</a></li>');
       }.bind(this));
     }
   });
@@ -181,7 +191,45 @@ $(function(){
   var ThingView = Backbone.View.extend({
     el: '#thing',
 
+    events: {
+      'click button.edit': 'edit',
+      'click button.save': 'save'
+    },
+
+    initialize: function(){
+      this.$el.find('.save').hide();
+      this.$el.find('form').hide();
+      this.resetInputs();
+    },
+
+    resetInputs: function(){
+      this.$el.find('.head input').val(this.model.get('name'));
+      this.$el.find('.head textarea').val(this.model.get('description'));
+    },
+
+    edit: function(){
+      console.log('edit');
+      this.$el.find('form').show();
+      this.$el.find('.head h2 span').hide();
+      this.$el.find('.head p').hide();
+      this.$el.find('.save').show();
+      this.$el.find('.edit').hide();
+    },
+
+    save: function(){
+      this.model.save();
+      this.$el.find('form').hide();
+      this.$el.find('.head h2 span').show();
+      this.$el.find('.head p').show();
+      this.$el.find('.save').hide();
+      this.$el.find('.edit').show();
+      this.render();
+    },
+
     render: function(){
+      this.resetInputs();
+      this.$el.find('.head h2 span').html(this.model.get('name'));
+      this.$el.find('.head p').html(this.model.get('description'));
       _.each(this.model.get('inputOf'), function(uri){
         var mod = modules.findWhere({ '@id': uri });
         this.$el.find('.input').append('<li><a href="#modules/' + mod.uuid() + '">' + mod.get('name') + '</a></li>');
@@ -225,17 +273,9 @@ $(function(){
     }
   });
 
-  function nameView(name){
-    $('#header h2').html(name);
-  }
-
-  function setDescription(description){
-    $('#header p').html(description);
-  }
-
   function resetLists(){
     $('ul.input').empty();
-    $('ul.process').empty();
+    $('.process div').empty();
     $('ul.output').empty();
   }
 
@@ -251,8 +291,6 @@ $(function(){
       $('#directory').show();
       $('#module').hide();
       $('#thing').hide();
-      nameView('Directory');
-      setDescription('');
     },
 
     mod: function(uuid){
@@ -262,8 +300,6 @@ $(function(){
       $('#thing').hide();
 
       var mod = modules.findWhere({ '@id': 'urn:uuid:' + uuid });
-      nameView('Module: ' + mod.get('name'));
-      setDescription(mod.get('description'));
       var view = new ModuleView({ model: mod });
       view.render();
     },
@@ -275,8 +311,6 @@ $(function(){
       $('#module').hide();
 
       var thing = things.findWhere({ '@id': 'urn:uuid:' + uuid });
-      nameView('Thing: ' + thing.get('name'));
-      setDescription(thing.get('description'));
       var view = new ThingView({ model: thing });
       view.render();
     }
@@ -325,7 +359,7 @@ $(function(){
     //console.log('retrieved data', app.data);
   //});
 
-  $('#header h1').on('click', function(){
+  $('#banner h1').on('click', function(){
     router.navigate('', { trigger: true });
   });
 
