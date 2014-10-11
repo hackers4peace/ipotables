@@ -117,6 +117,11 @@ $(function(){
   var Thing = Backbone.Model.extend({
     uuid: function(){
       return this.get('@id').replace('urn:uuid:', '');
+    },
+
+    save: function(){
+      console.log(this.toJSON());
+      graph.updateResource(this.toJSON()).then(app.log).catch(app.log);
     }
   });
 
@@ -132,13 +137,12 @@ $(function(){
     el: '#module',
 
     events: {
-      'click button.edit': 'edit',
-      'click button.save': 'save'
+      'click button.view': 'edit',
+      'click button.edit': 'save'
     },
 
     initialize: function(){
-      this.$el.find('.save').hide();
-      this.$el.find('form').hide();
+      this.$el.find('.edit').hide();
       this.resetInputs();
     },
 
@@ -147,24 +151,20 @@ $(function(){
       this.$el.find('.head textarea').val(this.model.get('description'));
       this.$el.find('.process textarea').val(this.model.get('process'));
     },
+
     edit: function(){
-      console.log('edit');
-      this.$el.find('form').show();
-      this.$el.find('.head h2 span').hide();
-      this.$el.find('.head p').hide();
-      this.$el.find('.process div').hide();
-      this.$el.find('.save').show();
-      this.$el.find('.edit').hide();
+      this.$el.find('.view').hide();
+      this.$el.find('.edit').show();
     },
 
     save: function(){
+      this.model.set('name', this.$el.find('.head input').val());
+      this.model.set('description', this.$el.find('.head textarea').val());
+      this.model.set('process', this.$el.find('.process textarea').val());
       this.model.save();
-      this.$el.find('form').hide();
-      this.$el.find('.head h2 span').show();
-      this.$el.find('.head p').show();
-      this.$el.find('.process div').show();
-      this.$el.find('.save').hide();
-      this.$el.find('.edit').show();
+
+      this.$el.find('.edit').hide();
+      this.$el.find('.view').show();
       this.render();
     },
 
@@ -192,13 +192,12 @@ $(function(){
     el: '#thing',
 
     events: {
-      'click button.edit': 'edit',
-      'click button.save': 'save'
+      'click button.view': 'edit',
+      'click button.edit': 'save'
     },
 
     initialize: function(){
-      this.$el.find('.save').hide();
-      this.$el.find('form').hide();
+      this.$el.find('.edit').hide();
       this.resetInputs();
     },
 
@@ -208,21 +207,17 @@ $(function(){
     },
 
     edit: function(){
-      console.log('edit');
-      this.$el.find('form').show();
-      this.$el.find('.head h2 span').hide();
-      this.$el.find('.head p').hide();
-      this.$el.find('.save').show();
-      this.$el.find('.edit').hide();
+      this.$el.find('.view').hide();
+      this.$el.find('.edit').show();
     },
 
     save: function(){
+      this.model.set('name', this.$el.find('.head input').val());
+      this.model.set('description', this.$el.find('.head textarea').val());
       this.model.save();
-      this.$el.find('form').hide();
-      this.$el.find('.head h2 span').show();
-      this.$el.find('.head p').show();
-      this.$el.find('.save').hide();
-      this.$el.find('.edit').show();
+
+      this.$el.find('.edit').hide();
+      this.$el.find('.view').show();
       this.render();
     },
 
@@ -230,13 +225,17 @@ $(function(){
       this.resetInputs();
       this.$el.find('.head h2 span').html(this.model.get('name'));
       this.$el.find('.head p').html(this.model.get('description'));
+      var inputList = this.$el.find('.input');
+      inputList.empty();
       _.each(this.model.get('inputOf'), function(uri){
         var mod = modules.findWhere({ '@id': uri });
-        this.$el.find('.input').append('<li><a href="#modules/' + mod.uuid() + '">' + mod.get('name') + '</a></li>');
+        inputList.append('<li><a href="#modules/' + mod.uuid() + '">' + mod.get('name') + '</a></li>');
       }.bind(this));
+      var outputList = this.$el.find('.output');
+      outputList.empty();
       _.each(this.model.get('outputOf'), function(uri){
         var mod = modules.findWhere({ '@id': uri });
-        this.$el.find('.output').append('<li><a href="#modules/' + mod.uuid() + '">' + mod.get('name') + '</a></li>');
+        outputList.append('<li><a href="#modules/' + mod.uuid() + '">' + mod.get('name') + '</a></li>');
       }.bind(this));
     }
   });
