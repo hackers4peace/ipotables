@@ -350,15 +350,15 @@ $(function(){
     graph.getAll('Thing').then(function(data) { things.reset(data); });
   }
 
-  init();
+  //init();
 
-  //$.get('data.jsonld', function(data){
-    //window.app.data = JSON.parse(data);
-    //graph.empty().then(function(){
-      //graph.seed(app.data).then(init);
-    //});
-    //console.log('retrieved data', app.data);
-  //});
+  $.get('data.jsonld', function(data){
+    window.app.data = JSON.parse(data);
+    graph.empty().then(function(){
+      graph.seed(app.data).then(init);
+    });
+    console.log('retrieved data', app.data);
+  });
 
   $('#banner h1').on('click', function(){
     router.navigate('', { trigger: true });
